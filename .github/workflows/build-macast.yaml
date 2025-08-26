@@ -26,7 +26,7 @@ on:
 
 jobs:
   release:
-    needs: [ build-amd64, build-armv7 ]
+    needs: [ build-nt, build-darwin, build-amd64, build-armv7 ]
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -130,96 +130,96 @@ jobs:
           name: ${{ env.DIST_AMD64_DEB }}
           path: ${{ env.DIST_AMD64_DEB }}
 
-  # build-nt:
-  #   runs-on: windows-2019
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4  # 升级 checkout 到 v4
+  build-nt:
+    runs-on: windows-2019
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4  # 升级 checkout 到 v4
 
-  #     - name: Install Requirement
-  #       run: |
-  #         pip3 install -r requirements/common.txt
-  #         pip3 install pyinstaller
-  #         $client = new-object System.Net.WebClient
-  #         $client.DownloadFile('https://github.com/xfangfang/Macast/releases/download/v0.1/mpv-0.34.0-x86_64.7z','mpv.7z')
-  #         7z x -obin mpv.7z *.exe
-  #         $client.DownloadFile('https://github.com/xfangfang/Macast/releases/download/v0.1/gettext0.21-iconv1.16-static-64.zip','gettext.zip')
-  #         7z x -ogettext gettext.zip bin/msgfmt.exe
+      - name: Install Requirement
+        run: |
+          pip3 install -r requirements/common.txt
+          pip3 install pyinstaller
+          $client = new-object System.Net.WebClient
+          $client.DownloadFile('https://github.com/xfangfang/Macast/releases/download/v0.1/mpv-0.34.0-x86_64.7z','mpv.7z')
+          7z x -obin mpv.7z *.exe
+          $client.DownloadFile('https://github.com/xfangfang/Macast/releases/download/v0.1/gettext0.21-iconv1.16-static-64.zip','gettext.zip')
+          7z x -ogettext gettext.zip bin/msgfmt.exe
 
-  #     - name: Build
-  #       id: compile
-  #       run: |
-  #         Get-ChildItem i18n | ForEach-Object -Process{gettext/bin/msgfmt -o $_/LC_MESSAGES/macast.mo $_/LC_MESSAGES/macast.po;echo $_.name}
-  #         $VERSION=cat macast/.version
-  #         echo "DIST_EXE=Macast-Windows-v${VERSION}.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-  #         echo "DIST_EXE_DEBUG=Macast-Windows-v${VERSION}-debug.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-  #         echo "VERSION=v${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
-  #         pyinstaller --noconfirm -F -w --additional-hooks-dir=. --add-data="macast/.version;." --add-data="macast/xml/*;macast/xml"  --add-data="i18n/zh_CN/LC_MESSAGES/*.mo;i18n/zh_CN/LC_MESSAGES" --add-data="macast/assets/*;macast/assets" --add-data="macast/assets/fonts/*;macast/assets/fonts" --add-binary="bin/mpv.exe;bin" --icon=macast/assets/icon.ico Macast.py
-  #         cp dist/Macast.exe Macast-Windows-v${VERSION}.exe
-  #         pyinstaller --noconfirm -F --additional-hooks-dir=. --add-data="macast/.version;." --add-data="macast/xml/*;macast/xml"  --add-data="i18n/zh_CN/LC_MESSAGES/*.mo;i18n/zh_CN/LC_MESSAGES" --add-data="macast/assets/*;macast/assets" --add-data="macast/assets/fonts/*;macast/assets/fonts" --add-binary="bin/mpv.exe;bin" --icon=macast/assets/icon.ico Macast.py
-  #         cp dist/Macast.exe Macast-Windows-v${VERSION}-debug.exe
-  #         echo "::set-output name=status::success"
+      - name: Build
+        id: compile
+        run: |
+          Get-ChildItem i18n | ForEach-Object -Process{gettext/bin/msgfmt -o $_/LC_MESSAGES/macast.mo $_/LC_MESSAGES/macast.po;echo $_.name}
+          $VERSION=cat macast/.version
+          echo "DIST_EXE=Macast-Windows-v${VERSION}.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "DIST_EXE_DEBUG=Macast-Windows-v${VERSION}-debug.exe" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          echo "VERSION=v${VERSION}" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+          pyinstaller --noconfirm -F -w --additional-hooks-dir=. --add-data="macast/.version;." --add-data="macast/xml/*;macast/xml"  --add-data="i18n/zh_CN/LC_MESSAGES/*.mo;i18n/zh_CN/LC_MESSAGES" --add-data="macast/assets/*;macast/assets" --add-data="macast/assets/fonts/*;macast/assets/fonts" --add-binary="bin/mpv.exe;bin" --icon=macast/assets/icon.ico Macast.py
+          cp dist/Macast.exe Macast-Windows-v${VERSION}.exe
+          pyinstaller --noconfirm -F --additional-hooks-dir=. --add-data="macast/.version;." --add-data="macast/xml/*;macast/xml"  --add-data="i18n/zh_CN/LC_MESSAGES/*.mo;i18n/zh_CN/LC_MESSAGES" --add-data="macast/assets/*;macast/assets" --add-data="macast/assets/fonts/*;macast/assets/fonts" --add-binary="bin/mpv.exe;bin" --icon=macast/assets/icon.ico Macast.py
+          cp dist/Macast.exe Macast-Windows-v${VERSION}-debug.exe
+          echo "::set-output name=status::success"
 
-  #     - name: Upload dist
-  #       uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
-  #       if: steps.compile.outputs.status == 'success'
-  #       with:
-  #         name: ${{ env.DIST_EXE }}
-  #         path: ${{ env.DIST_EXE }}
+      - name: Upload dist
+        uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: ${{ env.DIST_EXE }}
+          path: ${{ env.DIST_EXE }}
 
-  #     - name: Upload dist debug
-  #       uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
-  #       if: steps.compile.outputs.status == 'success'
-  #       with:
-  #         name: ${{ env.DIST_EXE_DEBUG }}
-  #         path: ${{ env.DIST_EXE_DEBUG }}
+      - name: Upload dist debug
+        uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: ${{ env.DIST_EXE_DEBUG }}
+          path: ${{ env.DIST_EXE_DEBUG }}
 
-  # build-darwin:
-  #   runs-on: macos-11
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v4  # 升级 checkout 到 v4
+  build-darwin:
+    runs-on: macos-11
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4  # 升级 checkout 到 v4
 
-  #     - name: install create-dmg
-  #       run: brew install create-dmg
+      - name: install create-dmg
+        run: brew install create-dmg
 
-  #     - name: install universal python
-  #       run: |
-  #         wget https://www.python.org/ftp/python/3.9.8/python-3.9.8-macos11.pkg
-  #         sudo installer -pkg python-3.9.8-macos11.pkg -target /
+      - name: install universal python
+        run: |
+          wget https://www.python.org/ftp/python/3.9.8/python-3.9.8-macos11.pkg
+          sudo installer -pkg python-3.9.8-macos11.pkg -target /
 
-  #     - name: Install Requirement
-  #       run: |
-  #         pip3 install -r requirements/darwin.txt
-  #         pip3 install py2app
-  #         wget https://laboratory.stolendata.net/~djinn/mpv_osx/mpv-latest.tar.gz
-  #         mkdir -p bin && tar --strip-components 2 -C bin -xzvf mpv-latest.tar.gz mpv.app/Contents/MacOS
+      - name: Install Requirement
+        run: |
+          pip3 install -r requirements/darwin.txt
+          pip3 install py2app
+          wget https://laboratory.stolendata.net/~djinn/mpv_osx/mpv-latest.tar.gz
+          mkdir -p bin && tar --strip-components 2 -C bin -xzvf mpv-latest.tar.gz mpv.app/Contents/MacOS
 
-  #     - name: Build
-  #       id: compile
-  #       run: |
-  #         for file in i18n/*; do msgfmt -o $file/LC_MESSAGES/macast.mo $file/LC_MESSAGES/macast.po;echo $file;done
-  #         python3 setup_py2app.py py2app --arch=x86_64
-  #         cp -R bin dist/Macast.app/Contents/Resources/
-  #         export VERSION=`cat macast/.version`
-  #         echo "DIST_DMG=Macast-MacOS-v${VERSION}.dmg" >> $GITHUB_ENV
-  #         echo "VERSION=v$VERSION" >> $GITHUB_ENV
-  #         create-dmg --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon "Macast.app" 200 190  --hide-extension "Macast.app" --app-drop-link 600 185  --volname "Macast-v${VERSION} Installer" Macast-MacOS-v${VERSION}.dmg "dist/"
-  #         echo "::set-output name=status::success"
+      - name: Build
+        id: compile
+        run: |
+          for file in i18n/*; do msgfmt -o $file/LC_MESSAGES/macast.mo $file/LC_MESSAGES/macast.po;echo $file;done
+          python3 setup_py2app.py py2app --arch=x86_64
+          cp -R bin dist/Macast.app/Contents/Resources/
+          export VERSION=`cat macast/.version`
+          echo "DIST_DMG=Macast-MacOS-v${VERSION}.dmg" >> $GITHUB_ENV
+          echo "VERSION=v$VERSION" >> $GITHUB_ENV
+          create-dmg --window-pos 200 120 --window-size 800 400 --icon-size 100 --icon "Macast.app" 200 190  --hide-extension "Macast.app" --app-drop-link 600 185  --volname "Macast-v${VERSION} Installer" Macast-MacOS-v${VERSION}.dmg "dist/"
+          echo "::set-output name=status::success"
 
-  #     - name: SSH connection to Actions
-  #       uses: P3TERX/ssh2actions@v1.0.0
-  #       if: (github.event.inputs.ssh_darwin == 'true' && github.event.inputs.ssh_darwin  != 'false') || contains(github.event.action, 'ssh_darwin')
-  #       env:
-  #         TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-  #         TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+      - name: SSH connection to Actions
+        uses: P3TERX/ssh2actions@v1.0.0
+        if: (github.event.inputs.ssh_darwin == 'true' && github.event.inputs.ssh_darwin  != 'false') || contains(github.event.action, 'ssh_darwin')
+        env:
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
 
-  #     - name: Upload dist
-  #       uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
-  #       if: steps.compile.outputs.status == 'success'
-  #       with:
-  #         name: ${{ env.DIST_DMG }}
-  #         path: ${{ env.DIST_DMG }}
+      - name: Upload dist
+        uses: actions/upload-artifact@v4  # 升级 upload-artifact 到 v4
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: ${{ env.DIST_DMG }}
+          path: ${{ env.DIST_DMG }}
 
   build-armv7:
     runs-on: ubuntu-latest
